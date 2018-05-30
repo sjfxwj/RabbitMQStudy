@@ -1,0 +1,17 @@
+#windows中的压缩包
+*.zip
+nohup.out
+
+#python中的测试目录
+test/
+.idea
+
+#日志目录
+*/logs/*
+
+
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
