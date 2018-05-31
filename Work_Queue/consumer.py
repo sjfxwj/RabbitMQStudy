@@ -15,6 +15,7 @@ def callback(ch,method,properties,body):
     print('[x] 处理消息完毕.')
     ch.basic_ack(delivery_tag=method.delivery_tag)   #防止消费者挂掉
 
+channel.basic_qos(prefetch_count=1)   #不要向工作人员发送新的消息，直到它处理并确认了前一个消息.
 channel.basic_consume(consumer_callback=callback,
                       queue='queue_4',
                       no_ack=False)    #防止消费者挂掉.

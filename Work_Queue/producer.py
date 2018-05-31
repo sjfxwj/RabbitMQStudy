@@ -9,7 +9,7 @@ channel = connection.channel()
 
 channel.queue_declare(queue='queue_4',durable=True)   #队列持久化
 
-message = ''.join(sys.argv[1:]) or 'Hello World!'
+message = ''.join(sys.argv[1:]) or 'HHH'
 channel.basic_publish(exchange='',
                       routing_key='queue_4',
                       body=message,
