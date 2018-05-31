@@ -51,9 +51,11 @@ no_ack = False:
 没有任何消息超时; 当消费者死亡时，RabbitMQ将重新传递消息。即使处理消息需要
 非常很长的时间也没关系。
 
+如何确保即使消费者死亡，任务也不会丢失??(面试题)
 具体代码:
 ch.basic_ack(delivery_tag=method.delivery_tag)
 no_ack = False
+缺陷:但是如果RabbitMQ服务器停止，我们的任务仍然会丢失。???
 
 <Basic.Deliver(['consumer_tag=ctag1.81499d951a364d62acb3615072659a5c',
                 'delivery_tag=1',
@@ -61,6 +63,25 @@ no_ack = False
                 'redelivered=False',
                 'routing_key=queue_2'])>
 
+
+
+问题:如果RabbitMQ服务器停止，如何确保我们的任务不会丢失?
+当RabbitMQ退出或崩溃时，它会忘记队列和消息，除非您告诉它不要。
+需要做两件事来确保消息不会丢失：我们需要将队列和消息标记为持久。
+
+队列持久化的方法:（如果队列之前已经存在的话,这个声明将失效：RabbitMQ不允许您使用不同的参数重新定义现有的队列）
+channel.queue_declare（queue = 'hello'，durable = True）===>生产者和消费者需要同时更改.
+
+消息持久化的方法:
+我们需要将消息标记为持久 - 通过提供值为2的delivery_mode属性.
+channel.basic_publish(exchange='',
+                      routing_key="task_queue",
+                      body=message,
+                      properties=pika.BasicProperties(
+                         delivery_mode = 2, # make message persistent
+                      ))
+
+总结:消费者死掉的处理方法与RabbitMq服务器死掉的处理方法:
 
 
 
