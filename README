@@ -1,5 +1,6 @@
 #windows查看服务的命令：services.msc
 官方文档:http://www.rabbitmq.com/getstarted.html
+Python学习:http://book.pythontips.com/en/latest/args_and_kwargs.html
 
 rabbitmqctl list_queues:
 rabbitmqctl list_exchanges:
@@ -137,7 +138,10 @@ channel.queue_bind（exchange = 'logs'，
 如果没有消费者正在收听，我们可以放心地丢弃消息。
 
 
-
+#第一:持久化问题测试.
+#queue自动删除问题
+#随机队列问题
+#整合问题????
 
 
 
