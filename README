@@ -1,6 +1,11 @@
 #windows查看服务的命令：services.msc
 官方文档:http://www.rabbitmq.com/getstarted.html
 
+rabbitmqctl list_queues:
+rabbitmqctl list_exchanges:
+rabbitmqctl list_bindings:
+
+
 1、简述 RabbitMQ、Kafka、ZeroMQ的区别？
 
 2、RabbitMQ如何在消费者获取任务后未处理完前就挂掉时，保证数据不丢失？
@@ -53,8 +58,8 @@ no_ack = False:
 
 如何确保即使消费者死亡，任务也不会丢失??(面试题)
 具体代码:
-ch.basic_ack(delivery_tag=method.delivery_tag)
-no_ack = False
+ch.basic_ack(delivery_tag=method.delivery_tag)  ===> 返回确认操作.
+no_ack = False（要求必须确认.）
 缺陷:但是如果RabbitMQ服务器停止，我们的任务仍然会丢失。???
 
 <Basic.Deliver(['consumer_tag=ctag1.81499d951a364d62acb3615072659a5c',
@@ -83,15 +88,56 @@ channel.basic_publish(exchange='',
 
 总结:消费者死掉的处理方法与RabbitMq服务器死掉的处理方法:
 
+
+公平消息分发的一个问题:
 RabbitMq默认的消息处理机制:RabbitMQ不知道任何有关这一点，并仍将均匀地发送消息。
 因为RabbitMQ只在消息进入队列时调度消息。它没有考虑消费者未确认消息的数量。
-RabbitMQ只是盲目地将第n条消息分发给第n个消费者。（牛逼的一句话.）
+RabbitMQ只是盲目地将第n条消息分发给第n个消费者。（牛逼的一句话.）即每个任务只被传递给一个工作人员。
 
 prefetch_count = 1设置。这告诉RabbitMQ一次不要向工作人员发送多个消息。
 或者换句话说，不要向工作人员发送新消息，直到它处理并确认了前一个消息。相反，
 它会将其分派给不是仍然忙碌的下一个工作人员。
 
 不要向工作人员发送新消息，直到它处理并确认了前一个消息.**
+
+
+发布:基本上，发布的日志消息将被广播给所有的接收者。
+简单模型汇总：
+甲生产者是发送消息的用户的应用程序。
+甲队列是存储消息的缓冲器。
+甲消费者是接收消息的用户的应用程序。
+
+RabbitMQ的消息传递模型:
+RabbitMQ中的消息传递模型的核心思想是生产者永远不会将任何消息直接发送到队列中。
+实际上，生产者通常甚至不知道邮件是否会被传送到任何队列中,相反，制作人只能发送消息给交易所。
+
+exchange的作用:
+交换是一件非常简单的事情。一方面它接收来自生产者的消息，另一方则推动他们排队。
+交易所必须知道如何处理收到的消息。是否应该附加到特定队列？它应该附加到许多队列中吗？
+或者它应该被丢弃。这些规则由交换类型定义。
+之前我们使用了Exchange: (AMQP default)：因为我们使用了一个默认的交换，我们用空字符串（“”）来标识。
+
+广播的机制:它只是将收到的所有消息广播到它所知道的所有队列中。这正是我们记录器所需要的。
+注意：我们需要在发送时提供一个routing_key，但是对于扇出交换，它的值将被忽略 **
+
+该交换参数''是交易所的名称。空字符串表示默认或无名交换：使用routing_key指定的名称
+（如果存在）将消息路由到队列。
+
+如何让:让服务器为我们选择一个随机队列名称。我们可以通过不将队列参数提供给queue_declare来实现这一点？
+result = channel.queue_declare(exclusive=True)
+result.method.queue是队列的名字.
+
+交换和队列之间的关系称为绑定:
+channel.queue_bind（exchange = 'logs'，
+                   队列= result.method.queue）
+
+
+#如果没有队列绑定到exchange:
+如果没有队列绑定到交换机上，这些消息将会丢失，但这对我们来说没问题;
+如果没有消费者正在收听，我们可以放心地丢弃消息。
+
+
+
 
 
 
