@@ -138,10 +138,27 @@ channel.queue_bind（exchange = 'logs'，
 如果没有消费者正在收听，我们可以放心地丢弃消息。
 
 
-#第一:持久化问题测试.
-#queue自动删除问题
-#随机队列问题
-#整合问题????
+路由:绑定是交换和队列之间的关系。这可以简单地理解为：队列对来自该交换机的消息感兴趣。
+绑定键的含义取决于交换类型.
+我们之前使用的exchange='fanout'忽略了绑定键的含义.
+
+channel.queue_bind（exchange = exchange_name，
+                   queue = queue_name，
+                   routing_key = 'black'）
+
+fanout:这不会给我们太多的灵活性 - 它只能无意识地播放。
+我们将使用直接交换。直接交换背后的路由算法很简单 - 消息进入队列，
+其绑定密钥与消息的路由密钥完全匹配。
+
+direct:
+如果消息的路由秘钥与queue所绑定的秘钥相同,那么这个消息就会进入到队列.
+a message goes to the queues whose binding key exactly matches the routing
+key of the message
+
+通过direct可以实现fanout:在这种情况下，direct交换就像fanout一样，并将消息广播到所有匹配的队列。
+
+
+
 
 
 
