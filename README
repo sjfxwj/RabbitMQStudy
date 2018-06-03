@@ -1,6 +1,9 @@
 #windows查看服务的命令：services.msc
 官方文档:http://www.rabbitmq.com/getstarted.html
 Python学习:http://book.pythontips.com/en/latest/args_and_kwargs.html
+参考博客:
+
+
 
 rabbitmqctl list_queues:
 rabbitmqctl list_exchanges:
@@ -156,6 +159,58 @@ a message goes to the queues whose binding key exactly matches the routing
 key of the message
 
 通过direct可以实现fanout:在这种情况下，direct交换就像fanout一样，并将消息广播到所有匹配的队列。
+
+top:通过direct并获得了选择性接收日志的可能性：尽管使用直接交换改进了我们的系统，
+但它仍然有局限性 - 它不能根据多个标准进行路由。
+
+发送到话题交换的消息不能有任意的routing_key,即它必须是由点分隔的单词列表。**
+单词可以是任何东西，但通常它们指定了与该消息相关的一些功能。一些有效的路由键例子：
+“ stock.usd.nyse ”，“ nyse.vmw ”，“ quick.orange.rabbit ”。只要您愿意，
+路由键中可以有多少个字，最多255个字节。
+
+话题交换背后的逻辑 类似于直接话题 - 使用特定路由键发送的消息将被传递到与匹配绑定键绑定的所有队列。
+
+* (star) can substitute for exactly one word.
+# (hash) can substitute for zero or more words.
+
+路由键routing_key 与 绑定键 binding_key **
+
+只会传递到第二个队列一次，即使它匹配了两个绑定。**
+
+话题交换功能强大，可以像其他交流一样行事。
+当使用“ ＃ ”（散列）绑定键绑定队列时，它将接收所有消息，而不管路由密钥如何 - 就像在扇出交换中一样。
+当在绑定中没有使用特殊字符“ * ”（星号）和“ ＃ ”（散列）时，主题交换将像直接交换一样。???
+
+
+**通过direct可以模拟fanout**
+**通过tip可以模拟direct和fanout**
+
+
+测试:
+1：To receive all the logs run
+python receive_logs_topic.py "#"(此时生产者无论发送什么消息都是可以接受到的.)
+
+2:To receive all logs from the facility "kern":
+python consumer.py kern.* (注意:*代表匹配一个单词,不是一个字符.)
+
+3:Or if you want to hear only about "critical" logs
+python receive_logs_topic.py "*.critical"
+
+4:You can create multiple bindings
+python receive_logs_topic.py "kern.*" "*.critical"
+
+5:You can create multiple bindings:
+python receive_logs_topic.py "kern.*" "*.critical"
+
+6:...
+
+
+
+
+
+
+
+
 
 
 
