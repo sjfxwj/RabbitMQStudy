@@ -245,6 +245,29 @@ RPC通信机制:
 RPC worker（又名：服务器）正在等待该队列上的请求。当出现请求时，它执行该作业，并使用reply_to字段中的队列将结果发送回客户端。
 客户端在回调队列中等待数据。当出现消息时，它会检查correlation_id属性。如果它匹配来自请求的值，则返回对应用程序的响应。
 
+self.channel.basic_publish(exchange='',
+                           routing_key='rpc_queue',
+                           body=str(n),
+                           properties=pika.BasicProperties(
+                               delivery_mode=2,
+                               correlation_id='3',
+                               message_id=str(30)))  #将消息进行持久化:防止RabbitMq服务挂掉
+
+其中的properties代表消息附带的属性,随后我们可以在method中看到:
+def call_back(channel,method,properties,body):
+    print('channel is:%s'%channel)
+    print('method is %s'%method)
+    print('properties is %s'%properties)
+    n = int(body)
+    time.sleep(3)
+    print('n is %s'%str(n))
+    channel.basic_ack(delivery_tag = method.delivery_tag)   #防止消费者挂掉.
+
+channel is:<BlockingChannel impl=<Channel number=1 OPEN conn=<SelectConnection OPEN socket=('::1', 50139, 0, 0)->('::1', 5672, 0, 0) params=<ConnectionParameters host=localhost port=5672 virtual_host=/ ssl=False>>>>
+method is <Basic.Deliver(['consumer_tag=ctag1.3869bdd65cf74c96a19ed145baca3938', 'delivery_tag=25', 'exchange=', 'redelivered=False', 'routing_key=rpc_queue'])>
+properties is <BasicProperties(['correlation_id=3', 'delivery_mode=2', 'message_id=30'])>
+
+
 
 
 
